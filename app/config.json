@@ -1,0 +1,5 @@
+{
+	"port": 1986,
+	"host": "localhost",
+    "barrierCount": 23
+}

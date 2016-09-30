@@ -1,9 +1,12 @@
 (function () {
 	'use strict';
-
 	console.log("Started");
-
-	var client = require("./app/client.js");
-	client.initClient();
+	
+	var fs = require("fs");
+	
+	var client = require("./app/client.js"),
+		options = JSON.parse(fs.readFileSync("./app/config.json", "utf8"));
+	
+	client.initClient(options);
 
 })();
