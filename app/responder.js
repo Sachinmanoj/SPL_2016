@@ -1,7 +1,5 @@
-(function(){
+(function(win){
 	'use strict';
-
-	var board = require("./board.js");
 
 	function getBotDetails() {
 		return {
@@ -51,8 +49,8 @@
 		}
 	}
 
-	module.exports = {
+	win.respondMod = {
 		respondToHost: respondToHost
 	};
 
-})();
+})(window);

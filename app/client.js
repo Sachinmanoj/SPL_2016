@@ -1,11 +1,10 @@
-(function () {
+(function (win) {
 	'use strict';
 
 	var net = require('net');
-	var respondMod = require("./responder.js");
-	
-	var printChunk = false;
-	
+
+    var printChunk = false;
+
 	var ds = {
 		completeData: new Buffer(0),
 		canStartAccumulateData: true,
@@ -17,7 +16,7 @@
 		ds.canStartAccumulateData = true;
 		ds.dataLength = -1;
 	}
-	
+
 	function connectToServer(options) {
 		var PORT = options.port;
 		var HOST = options.host;
@@ -63,7 +62,7 @@
 			}
 		});
 	}
-	
+
 	function registerEvents(socket) {
 		socket.on("error", function (data) {
 			console.error("error: ");
@@ -85,8 +84,8 @@
 
 
 	// exports
-	module.exports = {
+	win.client = {
 		"initClient": initClient
 	};
 
-})();
+})(window);

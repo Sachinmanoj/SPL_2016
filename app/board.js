@@ -1,7 +1,7 @@
-(function(){
+(function(win){
 	'use strict';
 
-    var config = require('./config.json');
+    var config = require('./app/config.json');
 
 	// bs - board struct
 	var bs = {
@@ -90,7 +90,7 @@
     }
 
     function nextMove() {
-        
+
     }
 
 	function initBanana() {
@@ -101,11 +101,12 @@
 		return errorFreeBanana(retVal);
 	};
 
-	module.exports = {
+    // export
+    win.board = {
 		initBanana: initBanana,
 		nextMove: nextMove,
 		updateBoard: updateBoard,
 		bs: bs
-	};
+    }
 
-})();
+})(window);
