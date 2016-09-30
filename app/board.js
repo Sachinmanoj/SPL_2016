@@ -115,7 +115,7 @@
             }
             return count;
         }, 0);
-        return (verBars+ horBars) - bs.barrierCount;
+        return (verBars+ horBars-9) - bs.barrierCount;
     }
 
     function updateBoard(data) {
@@ -128,6 +128,7 @@
         // horBar
         data.horizontalBarrier = data.horizontalBarrier.replace("\r\n", "");
         data.horizontalBarrier = data.horizontalBarrier.replace(/_/g, "");
+        data.horizontalBarrier += ",W,W,W,W,W,W,W,W,W";
         bs.horBar = data.horizontalBarrier.split(",");
         // verBar
         data.verticalBarrier = data.verticalBarrier.replace("\r\n", "");
@@ -142,6 +143,7 @@
         bs.player = data.player;
         bs.opponent = data.player === "P1" ? "P2": "P1";
         // spot
+        data.spot = data.spot.replace("\r\n", "");
         bs.P1Spot = data.spot.split(",").indexOf("P1") +1;
         bs.P2Spot = data.spot.split(",").indexOf("P2") +1;
         // turnCount
@@ -163,6 +165,108 @@
             return Math.random() > 0.5 ? "B75,H65,H67,V67" : "B79,H69,H71,V71";
         }
     }
+
+
+    function P1BFS(banPos, kingPos, horiArr, verArr, oppKings, oppBan, specps) {
+        var arr = [];
+        var fullArr = [banPos];
+        var start = banPos;
+        while (fullArr.length < 81) {
+            /* Vertical down */
+                var verD = start + 9;
+                if(verD <= 81 && horiArr[start -1] !== 'W' && (start) !== specps && fullArr.indexOf(verD) === -1) {
+                    arr.unshift(verD);
+                }
+                var HoriR = start + 1;
+                if((HoriR - 1) % 9 === 0) {
+                    HoriR = HoriR - 9;
+                }
+                if(verArr[HoriR -1] !== 'W' && (HoriR) !== specps && fullArr.indexOf(HoriR) === -1) {
+                    arr.unshift(HoriR);
+                }
+                var HoriL = start - 1;
+                if(HoriL % 9 === 0) {
+                    HoriL = HoriL + 9;
+                }
+                if(verArr[start -1] !== 'W' && (start) !== specps && fullArr.indexOf(HoriL) === -1) {
+                    arr.unshift(HoriL);
+                }
+                var verU = start - 9;
+                if(verU > 0 &&  horiArr[verU -1] !== 'W' && (verU) !== specps && fullArr.indexOf(verU) === -1) {
+                    arr.unshift(verU);
+                }
+                if(arr.indexOf(kingPos) !== -1) {
+                    return true;
+                }
+                if(verD <= 81 && fullArr.indexOf(verD) === -1) {
+                    fullArr.push(verD);
+                }
+                if(fullArr.indexOf(HoriR) === -1) {
+                    fullArr.push(HoriR);
+                }
+                if(fullArr.indexOf(HoriL) === -1) {
+                    fullArr.push(HoriL);
+                }
+                if(verU > 0 && fullArr.indexOf(verU) === -1) {
+                    fullArr.push(verU);
+                }
+                start = arr.shift();
+        }
+        return false;
+
+    }
+
+
+        function P2BFS(banPos, kingPos, horiArr, verArr, oppKings, oppBan, specps) {
+            var arr = [];
+            var fullArr = [banPos];
+            var start = banPos;
+            while (fullArr.length < 81) {
+                /* Vertical down */
+                    var verU = start - 9;
+                    if(verU > 0 && horiArr[verU -1] !== 'W' && (verU) !== specps && fullArr.indexOf(verU) === -1) {
+                        arr.unshift(verU);
+                    }
+                    var HoriR = start + 1;
+                    if((HoriR - 1) % 9 === 0) {
+                        HoriR = HoriR - 9;
+                    }
+                    if(verArr[HoriR -1] !== 'W' && (HoriR) !== specps && fullArr.indexOf(HoriR) === -1) {
+                        arr.unshift(HoriR);
+                    }
+                    var HoriL = start - 1;
+                    if(HoriL % 9 === 0) {
+                        HoriL = HoriL + 9;
+                    }
+                    if(verArr[start -1] !== 'W' && (start) !== specps && fullArr.indexOf(HoriL) === -1) {
+                        arr.unshift(HoriL);
+                    }
+                    var verD = start + 9;
+                    if(verD <= 81 && horiArr[start -1] !== 'W' && (start) !== specps && fullArr.indexOf(verD) === -1) {
+                        arr.unshift(verD);
+                    }
+                    if(arr.indexOf(kingPos) !== -1) {
+                        return true;
+                    }
+                    if(verD <= 81 && fullArr.indexOf(verD) === -1) {
+                        fullArr.push(verD);
+                    }
+                    if(fullArr.indexOf(HoriR) === -1) {
+                        fullArr.push(HoriR);
+                    }
+                    if(fullArr.indexOf(HoriL) === -1) {
+                        fullArr.push(HoriL);
+                    }
+                    if(verU > 0 && fullArr.indexOf(verU) === -1) {
+                        fullArr.push(verU);
+                    }
+                    start = arr.shift();
+            }
+            return false;
+
+        }
+
+
 
     function firstBarrierPlaced() {
         var pos = bs[bs.opponent+"B"];
@@ -196,7 +300,415 @@
         return isOpponentPlaced() && isNoBarrier();
     }
 
+    function isTargetsNearP1() {
+        /* Vertical down */
+        var spot = bs.P1Spot + 9;
+        if (spot === bs.P1B) {
+            return true;
+        }
+        /* Horizntal right */
+        spot = bs.P1Spot + 1;
+        if((spot - 1) % 9 === 0) {
+            spot = spot - 9;
+        }
+        if (spot === bs.P1B) {
+            return true;
+        }
+        /* Horizntal Left */
+        spot = bs.P1Spot - 1;
+        if(spot % 9 === 0) {
+            spot = spot + 9;
+        }
+        if (spot === bs.P1B) {
+            return true;
+        }
+        /* Vertical Up */
+        var spot = bs.P1Spot - 9;
+        if (spot === bs.P1B) {
+            return true;
+        }
+
+        // Jump possibility
+        if(isOppGorillaBlocksVer(1)) {
+            var spot = bs.P2Spot - 9;
+            if (spot === bs.P1B) {
+                return true;
+            }
+
+// Move Dia left
+            spot = bs.P1Spot -10;
+            if(spot %9 ===0 ) {
+                spot = spot + 9;
+            }
+            if (spot === bs.P1B) {
+                return true;
+            }
+
+// Move Dia left
+            spot = bs.P1Spot - 8;
+            if((spot - 1) %9 ===0 ) {
+                spot = spot - 9;
+            }
+            if (spot === bs.P1B) {
+                return true;
+            }
+
+        }
+
+        if(isOppGorillaBlocksHorR(1)) {
+            /* Horizntal right */
+            spot = bs.P2Spot + 1;
+            if((spot - 1) % 9 === 0) {
+                spot = spot - 9;
+            }
+            if (spot === bs.P1B) {
+                return true;
+            }
+
+            var spot = bs.P2Spot + 10;
+            if((spot - 1) %9 ===0 ) {
+                spot = spot - 9;
+            }
+            if (spot === bs.P1B) {
+                return true;
+            }
+            // jump possibility
+        }
+
+        if(isOppGorillaBlocksHorL(1)) {
+
+            /* Horizntal Left */
+            spot = bs.P2Spot - 1;
+            if(spot % 9 === 0) {
+                spot = spot + 9;
+            }
+            if (spot === bs.P1B) {
+                return true;
+            }
+
+            var spot = bs.P1Spot + 8;
+            if((spot) %9 ===0 ) {
+                spot = spot + 9;
+            }
+            if (spot === bs.P1B) {
+                return true;
+            }
+            // jump possibility
+        }
+
+        return false;
+    }
+
+    function isTargetsNearP2() {
+        /* Vertical down */
+        var spot = bs.P2Spot + 9;
+        if (spot === bs.P2B) {
+            return true;
+        }
+        /* Horizntal right */
+        spot = bs.P2Spot + 1;
+        if((spot - 1) % 9 === 0) {
+            spot = spot - 9;
+        }
+        if (spot === bs.P2B) {
+            return true;
+        }
+        /* Horizntal Left */
+        spot = bs.P2Spot - 1;
+        if(spot % 9 === 0) {
+            spot = spot + 9;
+        }
+        if (spot === bs.P2B) {
+            return true;
+        }
+        /* Vertical Up */
+        var spot = bs.P2Spot - 9;
+        if (spot === bs.P2B) {
+            return true;
+        }
+
+        // Jump possibility
+        if(isOppGorillaBlocksVer(1)) {
+            var spot = bs.P1Spot - 9;
+            if (spot === bs.P2B) {
+                return true;
+            }
+
+// Move Dia left
+            spot = bs.P2Spot -10;
+            if(spot %9 ===0 ) {
+                spot = spot + 9;
+            }
+            if (spot === bs.P2B) {
+                return true;
+            }
+
+// Move Dia left
+            spot = bs.P2Spot - 8;
+            if((spot - 1) %9 ===0 ) {
+                spot = spot - 9;
+            }
+            if (spot === bs.P2B) {
+                return true;
+            }
+
+        }
+        if(isOppGorillaBlocksHorR(1)) {
+            /* Horizntal right */
+            spot = bs.P1Spot + 1;
+            if((spot - 1) % 9 === 0) {
+                spot = spot - 9;
+            }
+            if (spot === bs.P2B) {
+                return true;
+            }
+
+            var spot = bs.P1Spot - 8;
+            if((spot - 1) %9 ===0 ) {
+                spot = spot - 9;
+            }
+            if (spot === bs.P2B) {
+                return true;
+            }
+            // jump possibility
+        }
+
+        if(isOppGorillaBlocksHorL(1)) {
+
+            /* Horizntal Left */
+            spot = bs.P1Spot - 1;
+            if(spot % 9 === 0) {
+                spot = spot + 9;
+            }
+            if (spot === bs.P2B) {
+                return true;
+            }
+
+            var spot = bs.P2Spot - 10;
+            if((spot) %9 ===0 ) {
+                spot = spot + 9;
+            }
+            if (spot === bs.P2B) {
+                return true;
+            }
+            // jump possibility
+        }
+
+        return false;
+    }
+
+    function bfsImplementP1() {
+        if(false ) {
+            // Trace Him
+        }
+        else {
+            // Move the kingPos
+            if(isTargetsNearP1()) {
+                return 'S' + bs.P1B;
+            }
+            if(isOppGorillaBlocksVer(1)) {
+                /* Vertical 2 dowm */
+                var spot = bs.P2Spot + 9;
+                if (spot <= 81 && spot > 0 &&  bs.horBar[bs.P2Spot -1] !== 'W' && P1BFS(bs.P1B, spot, bs.horBar, bs.verBar, bs.P2Spot, bs.P2B, bs.P1Spot)) {
+                    return 'S'+(spot);
+                }
+                // Move Dia left
+                var spot = bs.P1Spot + 8;
+                if(spot %9 ===0 ) {
+                    spot = spot + 9;
+                }
+                if (spot <= 81 && spot > 0 &&  P1BFS(bs.P1B, spot, bs.horBar, bs.verBar, bs.P2Spot, bs.P2B, bs.P1Spot)) {
+                    return 'S'+(spot);
+                }
+                // Move Dia left
+                var spot = bs.P1Spot + 10;
+                if((spot - 1) %9 ===0 ) {
+                    spot = spot - 9;
+                }
+                if (spot <= 81 && spot > 0 &&  P1BFS(bs.P1B, spot, bs.horBar, bs.verBar, bs.P2Spot, bs.P2B, bs.P1Spot)) {
+                    return 'S'+(spot);
+                }
+
+
+                // jump possibility
+            }
+            if(isOppGorillaBlocksHorR(1)) {
+                /* Horizntal right */
+                spot = bs.P2Spot + 1;
+                if((spot - 1) % 9 === 0) {
+                    spot = spot - 9;
+                }
+                if ( bs.verBar[spot - 1] !== 'W' && P1BFS(bs.P1B, spot, bs.horBar, bs.verBar, bs.P2Spot, bs.P2B, bs.P1Spot)) {
+                    return 'S'+(spot);
+                }
+
+                var spot = bs.P2Spot + 10;
+                if((spot - 1) %9 ===0 ) {
+                    spot = spot - 9;
+                }
+                if ( P1BFS(bs.P1B, spot, bs.horBar, bs.verBar, bs.P2Spot, bs.P2B, bs.P1Spot)) {
+                    return 'S'+(spot);
+                }
+                // jump possibility
+            }
+
+            if(isOppGorillaBlocksHorL(1)) {
+
+                /* Horizntal Left */
+                spot = bs.P2Spot - 1;
+                if(spot % 9 === 0) {
+                    spot = spot + 9;
+                }
+                if (bs.verBar[bs.P2Spot - 1] !== 'W' && P1BFS(bs.P1B, spot, bs.horBar, bs.verBar, bs.P2Spot, bs.P2B, bs.P1Spot)) {
+                    return 'S'+(spot);
+                }
+
+                var spot = bs.P1Spot + 8;
+                if((spot) %9 ===0 ) {
+                    spot = spot + 9;
+                }
+                if ( P1BFS(bs.P1B, spot, bs.horBar, bs.verBar, bs.P2Spot, bs.P2B, bs.P1Spot)) {
+                    return 'S'+(spot);
+                }
+                // jump possibility
+            }
+            /* Vertical down */
+            var spot = bs.P1Spot + 9;
+            if (spot <= 81 &&  bs.horBar[bs.P1Spot -1] !== 'W' && P1BFS(bs.P1B, spot, bs.horBar, bs.verBar, bs.P2Spot, bs.P2B, bs.P1Spot)) {
+                return 'S'+(spot);
+            }
+            /* Horizntal right */
+            spot = bs.P1Spot + 1;
+            if((spot - 1) % 9 === 0) {
+                spot = spot - 9;
+            }
+            if ( bs.verBar[spot - 1] !== 'W' && P1BFS(bs.P1B, spot, bs.horBar, bs.verBar, bs.P2Spot, bs.P2B, bs.P1Spot)) {
+                return 'S'+(spot);
+            }
+            /* Horizntal Left */
+            spot = bs.P1Spot - 1;
+            if(spot % 9 === 0) {
+                spot = spot + 9;
+            }
+            if (bs.verBar[bs.P1Spot - 1] !== 'W' && P1BFS(bs.P1B, spot, bs.horBar, bs.verBar, bs.P2Spot, bs.P2B, bs.P1Spot)) {
+                return 'S'+(spot);
+            }
+            /* Vertical Up */
+            var spot = bs.P1Spot - 9;
+            if (spot > 0 && bs.horBar[spot -1] !== 'W' && P1BFS(bs.P1B, spot, bs.horBar, bs.verBar, bs.P2Spot, bs.P2B, bs.P1Spot)) {
+                return 'S'+(spot);
+            }
+        }
+    }
+
+    function bfsImplementP2() {
+        if(false ) {
+            // Trace Him
+        }
+        else {
+            // Move the kingPos
+            if(isTargetsNearP2()) {
+                return 'S' + bs.P2B;
+            }
+
+            if(isOppGorillaBlocksVer(1)) {
+                /* Vertical 2 dowm */
+                var spot = bs.P1Spot - 9;
+                if (spot <= 81 && spot > 0 &&  bs.horBar[bs.P1Spot -1] !== 'W' && P2BFS(bs.P2B, spot, bs.horBar, bs.verBar, bs.P1Spot, bs.P1B, bs.P2Spot)) {
+                    return 'S'+(spot);
+                }
+                // Move Dia left
+                var spot = bs.P2Spot -10;
+                if(spot %9 ===0 ) {
+                    spot = spot + 9;
+                }
+                if (spot <= 81 && spot > 0 &&  P2BFS(bs.P2B, spot, bs.horBar, bs.verBar, bs.P1Spot, bs.P1B, bs.P2Spot)) {
+                    return 'S'+(spot);
+                }
+                // Move Dia left
+                var spot = bs.P2Spot - 8;
+                if((spot - 1) %9 ===0 ) {
+                    spot = spot - 9;
+                }
+                if (spot <= 81 && spot > 0 &&  P2BFS(bs.P2B, spot, bs.horBar, bs.verBar, bs.P1Spot, bs.P1B, bs.P2Spot)) {
+                    return 'S'+(spot);
+                }
+
+
+                // jump possibility
+            }
+            if(isOppGorillaBlocksHorR(1)) {
+                /* Horizntal right */
+                spot = bs.P1Spot + 1;
+                if((spot - 1) % 9 === 0) {
+                    spot = spot - 9;
+                }
+                if ( bs.verBar[spot - 1] !== 'W' && P2BFS(bs.P2B, spot, bs.horBar, bs.verBar, bs.P1Spot, bs.P1B, bs.P2Spot)) {
+                    return 'S'+(spot);
+                }
+
+                var spot = bs.P1Spot - 8;
+                if((spot - 1) %9 ===0 ) {
+                    spot = spot - 9;
+                }
+                if ( P2BFS(bs.P2B, spot, bs.horBar, bs.verBar, bs.P1Spot, bs.P1B, bs.P2Spot)) {
+                    return 'S'+(spot);
+                }
+                // jump possibility
+            }
+
+            if(isOppGorillaBlocksHorL(1)) {
+
+                /* Horizntal Left */
+                spot = bs.P1Spot - 1;
+                if(spot % 9 === 0) {
+                    spot = spot + 9;
+                }
+                if (bs.verBar[bs.P1Spot - 1] !== 'W' && P2BFS(bs.P2B, spot, bs.horBar, bs.verBar, bs.P1Spot, bs.P1B, bs.P2Spot)) {
+                    return 'S'+(spot);
+                }
+
+                var spot = bs.P2Spot - 10;
+                if((spot) %9 ===0 ) {
+                    spot = spot + 9;
+                }
+                if ( P2BFS(bs.P2B, spot, bs.horBar, bs.verBar, bs.P1Spot, bs.P1B, bs.P2Spot)) {
+                    return 'S'+(spot);
+                }
+                // jump possibility
+            }
+            /* Vertical Up */
+            var spot = bs.P2Spot - 9;
+            if (spot > 0 && P2BFS(bs.P2B, spot, bs.horBar, bs.verBar, bs.P1Spot, bs.P1B, bs.P2Spot)) {
+                return 'S'+(spot);
+            }
+            /* Horizntal right */
+            spot = bs.P2Spot + 1;
+            if((spot - 1) % 9 === 0) {
+                spot = spot - 9;
+            }
+            if (P2BFS(bs.P2B, spot, bs.horBar, bs.verBar, bs.P1Spot, bs.P1B, bs.P2Spot)) {
+                return 'S'+(spot);
+            }
+            /* Horizntal Left */
+            spot = bs.P2Spot - 1;
+            if(spot % 9 === 0) {
+                spot = spot + 9;
+            }
+            if (P2BFS(bs.P2B, spot, bs.horBar, bs.verBar, bs.P1Spot, bs.P1B, bs.P2Spot)) {
+                return 'S'+(spot);
+            }
+            /* Vertical down */
+            var spot = bs.P2Spot + 9;
+            if (spot <= 81 && P2BFS(bs.P2B, spot, bs.horBar, bs.verBar, bs.P1Spot, bs.P1B, bs.P2Spot)) {
+                return 'S'+(spot);
+            }
+
+        }
+    }
+
     function decideNextStep() {
+
         if(isBananaUnsafe()) {
             bs.startTrace = true;
             return placeBarrier();
@@ -206,7 +718,13 @@
             var bars = additionalBarriers[bs.player][pos].firstBlockingBar;
             return "V"+bars[0] +"," +"V"+bars[1];
         }
-        return
+
+        if(bs.player === "P1") {
+            return bfsImplementP1();
+        }
+        else if (bs.player === "P2") {
+            return bfsImplementP2();
+        }
     }
 
     function getForwardMove(step) {
@@ -218,9 +736,27 @@
         }
     }
 
-    function isOppGorillaBlocks(step) {
+    function isOppGorillaBlocksVer(step) {
         var cPos = bs[bs.player+"Spot"];
         var expPos = bs.player === "P1" ? cPos + (9 * step) : cPos - (9 * step) ;
+        return expPos === bs[bs.opponent+"Spot"];
+    }
+
+    function isOppGorillaBlocksHorR() {
+        var cPos = bs[bs.player+"Spot"];
+        var expPos = cPos + 1 ;
+        if((expPos - 1) % 9 === 0) {
+            expPos = expPos - 9;
+        }
+        return expPos === bs[bs.opponent+"Spot"];
+    }
+
+    function isOppGorillaBlocksHorL() {
+        var cPos = bs[bs.player+"Spot"];
+        var expPos = cPos - 1 ;
+        if(expPos % 9 === 0) {
+            expPos = expPos + 9;
+        }
         return expPos === bs[bs.opponent+"Spot"];
     }
 
@@ -228,12 +764,12 @@
         // simply move
         if(bs.turnCount < 3) {
             return getForwardMove(1);
-        } else if(bs.player === "P1" && bs.turnCount === 3 && !isOppGorillaBlocks(2)){
+        } else if(bs.player === "P1" && bs.turnCount === 3 && !isOppGorillaBlocksVer(2)){
             return getForwardMove(1);
         } else if(bs.player === "P2" && bs.turnCount === 3) {
-            if(isOppGorillaBlocks(2)) {
+            if(isOppGorillaBlocksVer(2)) {
                 return decideNextStep();
-            } else if (isOppGorillaBlocks(1)) {
+            } else if (isOppGorillaBlocksVer(1)) {
                 return getForwardMove(2);
             } else {
                 return getForwardMove(1);
