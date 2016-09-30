@@ -1,1 +1,9 @@
-console.log("This code is running");
+(function () {
+	'use strict';
+
+	console.log("Started");
+
+	var client = require("./app/client.js");
+	client.initClient();
+
+})();
