@@ -5,7 +5,7 @@
 
 	function getBotDetails() {
 		return {
-			"botName":"<Name>Working Still<ID>795481492759",
+			"botName":"<Name>Working Still<ID>679281937551",
 			"dataType":"Response"
 		};
 	}
