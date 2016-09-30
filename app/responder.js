@@ -14,13 +14,13 @@
 				return getBotDetails();
 				break;
 			case "BANANA":
-				board.updateBoard(data);
-				return board.initBanana();
+				win.board.updateBoard(data);
+				return win.board.initBanana();
 				break;
 			case "MOVE":
-				board.updateBoard(data);
-                console.log(board.bs);
-				return board.nextMove();
+				win.board.updateBoard(data);
+                console.log(win.board.bs);
+				return win.board.nextMove();
 				break;
 			default:
 				console.error("error:", data);

@@ -20,11 +20,58 @@
         return data;
 	}
 
+    // function getDiff(barArr, currentBar) {
+    //     currentBar = currentBar.replace("\r\n", "");
+    //     currentBar = currentBar.replace(/_/g, "");
+    //     currentBar = currentBar.split(",");
+    //     //
+    //     var barPos;
+    //     barArr.some(function (val, index) {
+    //         if(barArr[index] === currentBar[index]) {
+    //             return false; //keep loop running
+    //         }
+    //         barPos = index +1;
+    //         return true; //Hurray, we found the diff
+    //     });
+    //     return barPos;
+    // }
+
+    // function getNewBarrier(data) {
+    //     var horPos = getDiff(bs.horBar, data.horizontalBarrier),
+    //         verPos;
+    //     if(horPos) {
+    //         return "H" +horPos;
+    //     } else {
+    //         verPos = getDiff(bs.verBar, data.verticalBarrier);
+    //         if(verPos) {
+    //             return "V" +verPos;
+    //         }
+    //     }
+    // }
+
+    function getHisBarrierCount() {
+        var verBars = bs.verBar.reduce(function (count, elem) {
+            if(elem) {
+                ++count;
+            }
+            return count;
+        }, 0);
+        var horBars = bs.horBar.reduce(function (count, elem) {
+            if(elem) {
+                ++count;
+            }
+            return count;
+        }, 0);
+        return (verBars+ horBars) - bs.barrierCount;
+    }
+
     function updateBoard(data) {
+        // newly added barrier
+        // bs.newBarrier = getNewBarrier(data);
         // barrierCount
-        bs.barrierCount = data.barrierCount;
+        bs.barrierCount = parseInt(data.barrierCount);
         // errorCount
-        bs.errorCount = data.errorCount;
+        bs.errorCount = parseInt(data.errorCount);
         // horBar
         data.horizontalBarrier = data.horizontalBarrier.replace("\r\n", "");
         data.horizontalBarrier = data.horizontalBarrier.replace(/_/g, "");
@@ -33,14 +80,16 @@
         data.verticalBarrier = data.verticalBarrier.replace("\r\n", "");
         data.verticalBarrier = data.verticalBarrier.replace(/_/g, "");
         bs.verBar = data.verticalBarrier.split(",");
+        //
+        bs.oppBarrierCount = getHisBarrierCount();
         // banana pos
         bs.P1B = data.p1Banana;
         bs.P2B = data.p2Banana;
         // player
         bs.player = data.player;
         // spot
-        bs.P1Spot = data.spot.split(",").indexOf("P1");
-        bs.P2Spot = data.spot.split(",").indexOf("P2");
+        bs.P1Spot = data.spot.split(",").indexOf("P1") +1;
+        bs.P2Spot = data.spot.split(",").indexOf("P2") +1;
         // turnCount
         bs.turnCount = data.turnCount;
     }
