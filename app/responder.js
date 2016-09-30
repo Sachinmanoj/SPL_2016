@@ -11,6 +11,7 @@
 	function respondToCommand(data) {
 		switch(data.dataExpected.toUpperCase()) {
 			case "BOTNAME":
+                win.board.init();
 				return getBotDetails();
 				break;
 			case "BANANA":
