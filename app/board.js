@@ -1,5 +1,4 @@
 (function(win){
-	'use strict';
 
     var config = require('./app/config.json');
     var additionalBarriers = {
@@ -285,10 +284,19 @@
 
     function isNoBarrier() {
         var opsPlace = bs[bs.opponent + 'Spot'];
-        var pos = bs[bs.opponent+"B"];
+        var pos = bs[bs.opponent+"B"], index;
         pos = additionalBarriers[bs.player][pos].importantMoves[opsPlace];
         var barPos = parseInt(pos.substring(1, pos.length));
-        return (bs.verBar[barPos - 1] !== "W");
+        switch(pos.charAt(0)) {
+            case "V":
+                index = barPos -1;
+                return bs.verBar[index] !== "W";
+                break;
+            case "H":
+                index = barPos -1;
+                return bs.horBar[index] !== "W";
+                break;
+            }
     }
 
     function isMovesOver(importantMoves) {
@@ -522,9 +530,9 @@
     }
 
     function bfsImplementP1() {
-        if(bs.startTrace && bs.barrierCount && toDoTraceP2()) {
+        if(bs.startTrace && bs.barrierCount < 22 && toDoTraceP1()) {
             var prevPos = bs.prevOppPos;
-            if(!(bs.P2Slot >= 1 && (bs.P2Slot) <=36)) {
+            if(!(bs.P2Spot >= 1 && (bs.P2Spot) <=36)) {
                 bs.startTrace = false;
             }
             var diff = bs.P2Spot - prevPos;
@@ -533,18 +541,22 @@
             // Trace Him
             if (Math.abs(diff === 1)) {
                 // he moved horizontally;
-                if(horBar[bs.P2Slot-1] !== "W" && (bs.P2Slot >= 1 && (bs.P2Slot) <=36)) {
-                    if(horBar[bs.P2Slot + diff -1] !== "W" ) {
-                        horBar[bs.P2Slot-1] = "W";
-                        horBar[bs.P2Slot + diff -1] = "W";
-                        if((bs.P2Slot + diff >= 1 && (bs.P2Slot + diff) <=36) && P2BFS(bs.P2B, bs.P2Slot, horBar, verBar, bs.P1Spot, bs.P1B, -1)) {
-                            bs.doVertical = true;
-                            return "H" + bs.P2Slot + "," + "H" + (bs.P2Slot + diff) ;
-                        }
-                        else {
-                            horBar[bs.P2Slot + diff -1] = "";
-                            if(P2BFS(bs.P2B, bs.P2Slot, horBar, verBar, bs.P1Spot, bs.P1B, -1)) {
-                                return "H" + bs.P2Slot;
+                var toSpot = bs.P2Spot - 9;
+                if(toSpot > 0) {
+
+                    if(horBar[toSpot-1] !== "W" && (toSpot >= 1 && (toSpot) <=36)) {
+                        if(horBar[toSpot + diff -1] !== "W" ) {
+                            horBar[toSpot-1] = "W";
+                            horBar[toSpot + diff -1] = "W";
+                            if((toSpot + diff >= 1 && (toSpot + diff) <=36) && P2BFS(bs.P2B, bs.P2Spot, horBar, verBar, bs.P1Spot, bs.P1B, -1)) {
+                                bs.doVertical = true;
+                                return "H" + toSpot + "," + "H" + (toSpot + diff) ;
+                            }
+                            else {
+                                horBar[toSpot + diff -1] = "";
+                                if(P2BFS(bs.P2B, bs.P2Spot, horBar, verBar, bs.P1Spot, bs.P1B, -1)) {
+                                    return "H" + toSpot;
+                                }
                             }
                         }
                     }
@@ -552,19 +564,19 @@
             }
             if(diff === -1 || bs.doVertical) {
                 // he moved horizontally;
-                if(verBar[bs.P2Slot-1] !== "W" && (bs.P2Slot >= 1 && (bs.P2Slot) <=36)) {
-                    if(verBar[(bs.P2Slot + 8) - 1] !== "W" ) {
-                        verBar[bs.P2Slot-1] = "W";
-                        verBar[(bs.P2Slot + 8) -1] = "W";
-                        if( ((bs.P2Slot + 8) >= 1 && (bs.P2Slot + 8) <=36) && P2BFS(bs.P2B, bs.P2Slot, horBar, verBar, bs.P1Spot, bs.P1B, -1)) {
+                if(verBar[bs.P2Spot-1] !== "W" && (bs.P2Spot >= 1 && (bs.P2Spot) <=36)) {
+                    if(verBar[(bs.P2Spot + 9) - 1] !== "W" ) {
+                        verBar[bs.P2Spot-1] = "W";
+                        verBar[(bs.P2Spot + 9) -1] = "W";
+                        if( ((bs.P2Spot + 9) >= 1 && (bs.P2Spot + 9) <=36) && P2BFS(bs.P2B, bs.P2Spot, horBar, verBar, bs.P1Spot, bs.P1B, -1)) {
                             bs.doVertical = false;
-                            return "V" + bs.P2Slot + "," + "V" + (bs.P2Slot - 8) ;
+                            return "V" + bs.P2Spot + "," + "V" + (bs.P2Spot + 9) ;
                         }
                         else {
-                            verBar[(bs.P2Slot + 8) -1] = "";
-                            if(P2BFS(bs.P2B, bs.P2Slot, horBar, verBar, bs.P1Spot, bs.P1B, -1)) {
+                            verBar[(bs.P2Spot + 9) -1] = "";
+                            if(P2BFS(bs.P2B, bs.P2Spot, horBar, verBar, bs.P1Spot, bs.P1B, -1)) {
                                 bs.doVertical = false;
-                                return "V" + bs.P2Slot;
+                                return "V" + bs.P2Spot;
                             }
                         }
                     }
@@ -573,19 +585,19 @@
 
             if(diff === 1 || bs.doVertical) {
                 // he moved horizontally;
-                if(verBar[(bs.P2Slot+ 1) -1] !== "W" && ((bs.P2Slot+ 1) >= 1 && (bs.P2Slot+ 1) <=36)) {
-                    if(verBar[((bs.P2Slot+ 1) + 8) - 1] !== "W" ) {
-                        verBar[(bs.P2Slot+ 1)-1] = "W";
-                        verBar[((bs.P2Slot+ 1) + 8) -1] = "W";
-                        if((((bs.P2Slot+ 1) + 8) >= 46 && ((bs.P2Slot+ 1) + 8) <=81) && P2BFS(bs.P2B, bs.P2Slot, horBar, verBar, bs.P1Spot, bs.P1B, -1)) {
+                if(verBar[(bs.P2Spot+ 1) -1] !== "W" && ((bs.P2Spot+ 1) >= 1 && (bs.P2Spot+ 1) <=36)) {
+                    if(verBar[((bs.P2Spot+ 1) + 9) - 1] !== "W" ) {
+                        verBar[(bs.P2Spot+ 1)-1] = "W";
+                        verBar[((bs.P2Spot+ 1) + 9) -1] = "W";
+                        if((((bs.P2Spot+ 1) + 9) >= 1 && ((bs.P2Spot+ 1) + 9) <=36) && P2BFS(bs.P2B, bs.P2Spot, horBar, verBar, bs.P1Spot, bs.P1B, -1)) {
                             bs.doVertical = false;
-                            return "V" + (bs.P2Slot+ 1) + "," + "V" + ((bs.P2Slot+ 1) + 8) ;
+                            return "V" + (bs.P2Spot+ 1) + "," + "V" + ((bs.P2Spot+ 1) + 9) ;
                         }
                         else {
-                            verBar[((bs.P2Slot+ 1) + 8) -1] = "";
-                            if(P2BFS(bs.P2B, bs.P2Slot, horBar, verBar, bs.P1Spot, bs.P1B, -1)) {
+                            verBar[((bs.P2Spot+ 1) + 9) -1] = "";
+                            if(P2BFS(bs.P2B, bs.P2Spot, horBar, verBar, bs.P1Spot, bs.P1B, -1)) {
                                 bs.doVertical = false;
-                                return "V" + (bs.P1Slot+ 1);
+                                return "V" + (bs.P1Spot+ 1);
                             }
                         }
                     }
@@ -691,15 +703,15 @@
 
     function toDoTraceP2 () {
         var count = 0;
-        (bs.horBar[bs.P1Slot - 1] !== 'W') ? count++ : true;
-        (bs.verBar[bs.P1Slot - 1] !== 'W') ? count++ : true;
-        if((bs.P1Slot - 8 ) < 82 && (bs.P1Slot - 8 ) > 0) {
-            (bs.horBar[bs.P1Slot - 8 - 1 ] !== 'W') ? count++ : true;
+        (bs.horBar[bs.P1Spot - 1] !== 'W') ? count++ : true;
+        (bs.verBar[bs.P1Spot - 1] !== 'W') ? count++ : true;
+        if((bs.P1Spot - 9 ) < 82 && (bs.P1Spot - 9 ) > 0) {
+            (bs.horBar[bs.P1Spot - 9 - 1 ] !== 'W') ? count++ : true;
         }
         else {
              count++;
         }
-        var slot = bs.P1Slot + 1;
+        var slot = bs.P1Spot + 1;
         if ((slot-1) % 9 === 0) {
             slot = slot - 9;
         }
@@ -709,15 +721,15 @@
 
     function toDoTraceP1 () {
         var count = 0;
-        (bs.horBar[bs.P2Slot - 1] !== 'W') ? count++ : true;
-        (bs.verBar[bs.P2Slot - 1] !== 'W') ? count++ : true;
-        if((bs.P2Slot - 8 ) < 82 && (bs.P2Slot - 8 ) > 0) {
-            (bs.horBar[bs.P2Slot - 8 - 1 ] !== 'W') ? count++ : true;
+        (bs.horBar[bs.P2Spot - 1] !== 'W') ? count++ : true;
+        (bs.verBar[bs.P2Spot - 1] !== 'W') ? count++ : true;
+        if((bs.P2Spot - 9 ) < 82 && (bs.P2Spot - 9 ) > 0) {
+            (bs.horBar[bs.P2Spot - 9 - 1 ] !== 'W') ? count++ : true;
         }
         else {
              count++;
         }
-        var slot = bs.P2Slot + 1;
+        var slot = bs.P2Spot + 1;
         if ((slot-1) % 9 === 0) {
             slot = slot - 9;
         }
@@ -726,9 +738,9 @@
     }
 
     function bfsImplementP2() {
-        if(bs.startTrace && bs.barrierCount && toDoTraceP2()) {
+        if(bs.startTrace && bs.barrierCount < 22 && toDoTraceP2()) {
             var prevPos = bs.prevOppPos;
-            if(!(bs.P1Slot >= 46 && (bs.P1Slot) <=81)) {
+            if(!(bs.P1Spot >= 46 && (bs.P1Spot) <=81)) {
                 bs.startTrace = false;
             }
             var diff = bs.P1Spot - prevPos;
@@ -737,18 +749,18 @@
             // Trace Him
             if (Math.abs(diff === 1)) {
                 // he moved horizontally;
-                if(horBar[bs.P1Slot-1] !== "W" && (bs.P1Slot >= 46 && (bs.P1Slot) <=81)) {
-                    if(horBar[bs.P1Slot + diff -1] !== "W" ) {
-                        horBar[bs.P1Slot-1] = "W";
-                        horBar[bs.P1Slot + diff -1] = "W";
-                        if((bs.P1Slot + diff >= 46 && (bs.P1Slot + diff) <=81) && P1BFS(bs.P1B, bs.P1Slot, horBar, verBar, bs.P2Spot, bs.P2B, -1)) {
+                if(horBar[bs.P1Spot-1] !== "W" && (bs.P1Spot >= 46 && (bs.P1Spot) <=81)) {
+                    if(horBar[bs.P1Spot + diff -1] !== "W" ) {
+                        horBar[bs.P1Spot-1] = "W";
+                        horBar[bs.P1Spot + diff -1] = "W";
+                        if((bs.P1Spot + diff >= 46 && (bs.P1Spot + diff) <=81) && P1BFS(bs.P1B, bs.P1Spot, horBar, verBar, bs.P2Spot, bs.P2B, -1)) {
                             bs.doVertical = true;
-                            return "H" + bs.P1Slot + "," + "H" + (bs.P1Slot + diff) ;
+                            return "H" + bs.P1Spot + "," + "H" + (bs.P1Spot + diff) ;
                         }
                         else {
-                            horBar[bs.P1Slot + diff -1] = "";
-                            if(P1BFS(bs.P1B, bs.P1Slot, horBar, verBar, bs.P2Spot, bs.P2B, -1)) {
-                                return "H" + bs.P1Slot;
+                            horBar[bs.P1Spot + diff -1] = "";
+                            if(P1BFS(bs.P1B, bs.P1Spot, horBar, verBar, bs.P2Spot, bs.P2B, -1)) {
+                                return "H" + bs.P1Spot;
                             }
                         }
                     }
@@ -756,19 +768,19 @@
             }
             if(diff === -1 || bs.doVertical) {
                 // he moved horizontally;
-                if(verBar[bs.P1Slot-1] !== "W" && (bs.P1Slot >= 46 && (bs.P1Slot) <=81)) {
-                    if(verBar[(bs.P1Slot - 8) - 1] !== "W" ) {
-                        verBar[bs.P1Slot-1] = "W";
-                        verBar[(bs.P1Slot - 8) -1] = "W";
-                        if( ((bs.P1Slot - 8) >= 46 && (bs.P1Slot - 8) <=81) && P1BFS(bs.P1B, bs.P1Slot, horBar, verBar, bs.P2Spot, bs.P2B, -1)) {
+                if(verBar[bs.P1Spot-1] !== "W" && (bs.P1Spot >= 46 && (bs.P1Spot) <=81)) {
+                    if(verBar[(bs.P1Spot - 9) - 1] !== "W" ) {
+                        verBar[bs.P1Spot-1] = "W";
+                        verBar[(bs.P1Spot - 9) -1] = "W";
+                        if( ((bs.P1Spot - 9) >= 46 && (bs.P1Spot - 9) <=81) && P1BFS(bs.P1B, bs.P1Spot, horBar, verBar, bs.P2Spot, bs.P2B, -1)) {
                             bs.doVertical = false;
-                            return "V" + bs.P1Slot + "," + "V" + (bs.P1Slot - 8) ;
+                            return "V" + bs.P1Spot + "," + "V" + (bs.P1Spot - 9) ;
                         }
                         else {
-                            verBar[(bs.P1Slot - 8) -1] = "";
-                            if(P1BFS(bs.P1B, bs.P1Slot, horBar, verBar, bs.P2Spot, bs.P2B, -1)) {
+                            verBar[(bs.P1Spot - 9) -1] = "";
+                            if(P1BFS(bs.P1B, bs.P1Spot, horBar, verBar, bs.P2Spot, bs.P2B, -1)) {
                                 bs.doVertical = false;
-                                return "V" + bs.P1Slot;
+                                return "V" + bs.P1Spot;
                             }
                         }
                     }
@@ -777,19 +789,19 @@
 
             if(diff === 1 || bs.doVertical) {
                 // he moved horizontally;
-                if(verBar[(bs.P1Slot+ 1) -1] !== "W" && ((bs.P1Slot+ 1) >= 46 && (bs.P1Slot+ 1) <=81)) {
-                    if(verBar[((bs.P1Slot+ 1) - 8) - 1] !== "W" ) {
-                        verBar[(bs.P1Slot+ 1)-1] = "W";
-                        verBar[((bs.P1Slot+ 1) - 8) -1] = "W";
-                        if((((bs.P1Slot+ 1) - 8) >= 46 && ((bs.P1Slot+ 1) - 8) <=81) && P1BFS(bs.P1B, bs.P1Slot, horBar, verBar, bs.P2Spot, bs.P2B, -1)) {
+                if(verBar[(bs.P1Spot+ 1) -1] !== "W" && ((bs.P1Spot+ 1) >= 46 && (bs.P1Spot+ 1) <=81)) {
+                    if(verBar[((bs.P1Spot+ 1) - 9) - 1] !== "W" ) {
+                        verBar[(bs.P1Spot+ 1)-1] = "W";
+                        verBar[((bs.P1Spot+ 1) - 9) -1] = "W";
+                        if((((bs.P1Spot+ 1) - 9) >= 46 && ((bs.P1Spot+ 1) - 9) <=81) && P1BFS(bs.P1B, bs.P1Spot, horBar, verBar, bs.P2Spot, bs.P2B, -1)) {
                             bs.doVertical = false;
-                            return "V" + (bs.P1Slot+ 1) + "," + "V" + ((bs.P1Slot+ 1) - 8) ;
+                            return "V" + (bs.P1Spot+ 1) + "," + "V" + ((bs.P1Spot+ 1) - 9) ;
                         }
                         else {
-                            verBar[((bs.P1Slot+ 1) - 8) -1] = "";
-                            if(P1BFS(bs.P1B, bs.P1Slot, horBar, verBar, bs.P2Spot, bs.P2B, -1)) {
+                            verBar[((bs.P1Spot+ 1) - 9) -1] = "";
+                            if(P1BFS(bs.P1B, bs.P1Spot, horBar, verBar, bs.P2Spot, bs.P2B, -1)) {
                                 bs.doVertical = false;
-                                return "V" + (bs.P1Slot+ 1);
+                                return "V" + (bs.P1Spot+ 1);
                             }
                         }
                     }
