@@ -172,7 +172,7 @@
         var arr = [];
         var fullArr = [banPos];
         var start = banPos;
-        while (fullArr.length < 81) {
+        do {
             /* Vertical down */
                 var verD = start + 9;
                 if(verD <= 81 && horiArr[start -1] !== 'W' && (start) !== specps && fullArr.indexOf(verD) === -1) {
@@ -212,7 +212,7 @@
                     fullArr.push(verU);
                 }
                 start = arr.shift();
-        }
+        } while(arr.length !== 0);
         return false;
 
     }
@@ -222,7 +222,7 @@
             var arr = [];
             var fullArr = [banPos];
             var start = banPos;
-            while (fullArr.length < 81) {
+            do {
                 /* Vertical down */
                     var verU = start - 9;
                     if(verU > 0 && horiArr[verU -1] !== 'W' && (verU) !== specps && fullArr.indexOf(verU) === -1) {
@@ -262,7 +262,7 @@
                         fullArr.push(verU);
                     }
                     start = arr.shift();
-            }
+            } while(arr.length !== 0);
             return false;
 
         }
